@@ -1,111 +1,107 @@
-# S3 storage best practice
+# S3 Storage Best Practice
 
-![Release](https://github.com/subhamay-bhattacharyya/s3-storage-best-practice/actions/workflows/ci.yaml/badge.svg)&nbsp;![AWS](https://img.shields.io/badge/AWS-FF9900?&logo=amazon-aws&logoColor=white)&nbsp;![Commit Activity](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![File Count](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/b57589fcc2622d83636de5a61cfd6588/raw/s3-storage-best-practice.json?)
+![Release](https://github.com/subhamay-bhattacharyya/s3-storage-best-practice/actions/workflows/ci.yaml/badge.svg)&nbsp;![AWS](https://img.shields.io/badge/AWS-FF9900?&logo=amazon-aws&logoColor=white)&nbsp;![Terraform](https://img.shields.io/badge/Terraform-7B42BC?&logo=terraform&logoColor=white)&nbsp;![Commit Activity](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya/s3-storage-best-practice)&nbsp;![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya/s3-storage-best-practice)
 
-## What is terraform-docs
+## Overview
 
-A utility to generate documentation from Terraform modules in various output formats.
+A Terraform module for provisioning AWS S3 buckets following security and operational best practices. This repository provides a reusable, configurable infrastructure-as-code solution for S3 bucket deployment.
 
-## Documentation
+## Features
 
-- **Users**
-  - Read the [User Guide] to learn how to use terraform-docs
-  - Read the [Formats Guide] to learn about different output formats of terraform-docs
-  - Refer to [Config File Reference] for all the available configuration options
-- **Developers**
-  - Read [Contributing Guide] before submitting a pull request
+- JSON-based configuration for S3 bucket settings
+- KMS encryption support
+- Versioning enabled by default
+- Customizable bucket policies via templates
+- Standardized resource tagging
+- Unit tests using Terraform test framework
 
-Visit [our website] for all documentation.
+## Project Structure
 
-## Installation
-
-The latest version can be installed using `go get`:
-
-```bash
-GO111MODULE="on" go get github.com/terraform-docs/terraform-docs@v0.12.0
+```
+infra/aws/tf/
+├── main.tf              # S3 module instantiation
+├── variables.tf         # Input variables with validation
+├── locals.tf            # Local values and configuration parsing
+├── outputs.tf           # Module outputs
+├── providers.tf         # Provider configuration
+├── backends.tf          # State backend configuration
+├── config.json          # S3 bucket configuration
+├── terraform.tfvars     # Variable values
+├── templates/
+│   └── bucket-policy/
+│       └── s3-bucket-policy.tftpl
+└── tests/
+    └── unit.tftest.hcl  # Unit tests
 ```
 
-**NOTE:** to download any version **before** `v0.9.1` (inclusive) you need to use to
-old module namespace (`segmentio`):
+## Configuration
 
-```bash
-# only for v0.9.1 and before
-GO111MODULE="on" go get github.com/segmentio/terraform-docs@v0.9.1
+Edit `config.json` to customize your S3 bucket:
+
+```json
+{
+    "s3": {
+        "bucket_name": "aws-s3-best-practice",
+        "versioning": true,
+        "kms_key_alias": "SB-KMS"
+    }
+}
 ```
 
-**NOTE:** please use the latest go to do this, we use 1.16.0 but ideally go 1.15 or greater.
-
-This will put `terraform-docs` in `$(go env GOPATH)/bin`. If you encounter the error
-`terraform-docs: command not found` after installation then you may need to either add
-that directory to your `$PATH` as shown [here] or do a manual installation by cloning
-the repo and run `make build` from the repository which will put `terraform-docs` in:
+## Usage
 
 ```bash
-$(go env GOPATH)/src/github.com/terraform-docs/terraform-docs/bin/$(uname | tr '[:upper:]' '[:lower:]')-amd64/terraform-docs
+cd infra/aws/tf
+
+# Initialize
+terraform init -backend-config="bucket=your-state-bucket" \
+               -backend-config="key=terraform.tfstate" \
+               -backend-config="region=us-east-1"
+
+# Plan
+terraform plan
+
+# Apply
+terraform apply
+
+# Run tests
+terraform test
 ```
 
-Stable binaries are also available on the [releases] page. To install, download the
-binary for your platform from "Assets" and place this into your `$PATH`:
+## Variables
 
+| Name | Description | Default |
+|------|-------------|---------|
+| `project_name` | Project name for resource naming (max 30 chars) | `subhamay` |
+| `environment` | Environment name (devl, test, prod) | `devl` |
+| `aws_region` | AWS region for resources | `us-east-1` |
+| `s3_config_path` | Path to S3 configuration JSON file | `config.json` |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| `s3_bucket_id` | The name of the S3 bucket |
+| `s3_bucket_arn` | The ARN of the S3 bucket |
+| `s3_bucket_region` | The AWS region of the S3 bucket |
+| `s3_bucket_domain_name` | The domain name of the S3 bucket |
+| `s3_bucket_tags` | The tags of the S3 bucket |
+
+## Testing
+
+Unit tests validate:
+- Bucket name format and length (3-63 characters)
+- Versioning configuration
+- ARN format
+- Encryption settings
+- Bucket policy existence
+- Required tags
+
+Run tests:
 ```bash
-curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.12.0/terraform-docs-v0.12.0-$(uname)-amd64.tar.gz
-tar -xzf terraform-docs.tar.gz
-chmod +x terraform-docs
-mv terraform-docs /some-dir-in-your-PATH/terraform-docs
+terraform test
 ```
-
-**NOTE:** Windows releases are in `ZIP` format.
-
-If you are a Mac OS X user, you can use [Homebrew]:
-
-```bash
-brew install terraform-docs
-```
-
-or
-
-```bash
-brew install terraform-docs/tap/terraform-docs
-```
-
-Windows users can install using [Scoop]:
-
-```bash
-scoop bucket add terraform-docs https://github.com/terraform-docs/scoop-bucket
-scoop install terraform-docs
-```
-
-or [Chocolatey]:
-
-```bash
-choco install terraform-docs
-```
-
-Alternatively you also can run `terraform-docs` as a container:
-
-```bash
-docker run quay.io/terraform-docs/terraform-docs:0.12.0
-```
-
-**NOTE:** Docker tag `latest` refers to _latest_ stable released version and `edge`
-refers to HEAD of `master` at any given point in time.
-
-## Community
-
-- Discuss terraform-docs on [Slack]
 
 ## License
 
-MIT License - Copyright (c) 2021 The terraform-docs Authors.
-
-[User Guide]: ./docs/user-guide/introduction.md
-[Formats Guide]: ./docs/reference/terraform-docs.md
-[Config File Reference]: ./docs/user-guide/configuration.md
-[Contributing Guide]: CONTRIBUTING.md
-[our website]: https://terraform-docs.io/
-[here]: https://golang.org/doc/code.html#GOPATH
-[releases]: https://github.com/terraform-docs/terraform-docs/releases
-[Homebrew]: https://brew.sh
-[Scoop]: https://scoop.sh/
-[Chocolatey]: https://www.chocolatey.org
-[Slack]: https://slack.terraform-docs.io/
+MIT License - See [LICENSE](LICENSE) for details.
