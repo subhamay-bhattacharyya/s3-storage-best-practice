@@ -1,0 +1,7 @@
+{
+    "s3": {
+        "bucket_name": "aws-s3-best-practice",
+        "versioning": true,
+        "kms_key_alias": "SB-KMS"
+    }
+}
